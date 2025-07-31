@@ -12,6 +12,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
   late CameraPosition initialCameraPosition;
   late GoogleMapController googleMapController;
   String? nightMapStyle;
+  Set<Marker> markers = {};
 
   @override
   void initState() {
@@ -22,6 +23,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
       ),
       zoom: 12.0,
     );
+    initMarkers();
     super.initState();
   }
 
@@ -36,6 +38,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     return Stack(
       children: [
         GoogleMap(
+          markers: markers,
           style: nightMapStyle,
           //mapType: MapType.hybrid,
           onMapCreated: (controller) {
@@ -77,6 +80,15 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     ).loadString('assets/map_styles/night_map_style.json');
     // Apply the map style to the Google Map
     setState(() {});
+  }
+
+  void initMarkers() {
+    var myMarker = const Marker(
+      markerId: MarkerId('1'),
+      position: LatLng(31.037399911351685, 31.361129822000777),
+      infoWindow: InfoWindow(title: 'My Location'),
+    );
+    markers.add(myMarker);
   }
 }
 
