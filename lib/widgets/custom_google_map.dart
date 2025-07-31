@@ -83,10 +83,19 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     setState(() {});
   }
 
-  void initMarkers() {
+  void initMarkers() async {
+    // Load custom marker icon from assets
+    // Note: Ensure the icon is in PNG format, as Google Maps Flutter does not support SVG directly
+    // If you have an SVG, convert it to PNG first.
+    var customMarkerIcon = await BitmapDescriptor.asset(
+      const ImageConfiguration(size: Size(48, 48)),
+      'assets/icons/marker_icon.png', // Convert SVG to PNG
+    );
+    // Create markers from the places list
     var myMarkers = places
         .map(
           (placeModel) => Marker(
+            icon: customMarkerIcon,
             markerId: MarkerId(placeModel.id.toString()),
             position: placeModel.location,
             infoWindow: InfoWindow(title: placeModel.name),
@@ -94,6 +103,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
         )
         .toSet();
     markers.addAll(myMarkers);
+    setState(() {});
   }
 }
 
