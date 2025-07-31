@@ -1,4 +1,7 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_app/models/place_model.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -83,13 +86,43 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     setState(() {});
   }
 
+  // Use this method if you don't have a direct access to the image file
+  // Like you have the image coming form an API or a different source 
+  Future<Uint8List> resizeImageFromRawData(
+    String imagePath,
+    double width,
+  ) async {
+    // Load the image data from assets
+    var imageData = await rootBundle.load(imagePath);
+
+    // Instantiate the image codec with the loaded data and target width
+    // Note: This step will resize the image to the specified width
+    var imageCodec = await ui.instantiateImageCodec(
+      imageData.buffer.asUint8List(),
+      targetWidth: width.round(),
+    );
+
+    // Get the first frame of the image codec
+    var imageFrameInfo = await imageCodec.getNextFrame();
+
+    // Convert the image to a byte array
+    // using the specified format (PNG in this case)
+    var imageByteData = await imageFrameInfo.image.toByteData(
+      format: ui.ImageByteFormat.png,
+    );
+
+    // Return the byte array as Uint8List
+    return imageByteData!.buffer.asUint8List();
+  }
+
   void initMarkers() async {
     // Load custom marker icon from assets
-    // Note: Ensure the icon is in PNG format, as Google Maps Flutter does not support SVG directly
-    // If you have an SVG, convert it to PNG first.
-    var customMarkerIcon = await BitmapDescriptor.asset(
-      const ImageConfiguration(size: Size(48, 48)),
-      'assets/icons/marker_icon.png', // Convert SVG to PNG
+    // Note: Ensure the icon is in PNG format
+    var customMarkerIcon = BitmapDescriptor.bytes(
+      await resizeImageFromRawData(
+        'assets/icons/marker_icon.png',
+      100.0,
+      ),
     );
     // Create markers from the places list
     var myMarkers = places
