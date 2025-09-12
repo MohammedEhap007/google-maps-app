@@ -23,6 +23,7 @@ class _LiveLocationTrackerScreenState extends State<LiveLocationTrackerScreen> {
   late CameraPosition initialCameraPosition;
   late Location location;
   GoogleMapController? googleMapController;
+  Set<Marker> markers = {};
 
   @override
   void initState() {
@@ -58,6 +59,8 @@ class _LiveLocationTrackerScreenState extends State<LiveLocationTrackerScreen> {
         children: [
           GoogleMap(
             initialCameraPosition: initialCameraPosition,
+            markers: markers,
+            //myLocationEnabled: true,
             onMapCreated: (controller) {
               googleMapController = controller;
             },
@@ -99,12 +102,30 @@ class _LiveLocationTrackerScreenState extends State<LiveLocationTrackerScreen> {
   void getLocationData({
     required Location location,
   }) {
+    // Set location update settings
+    location.changeSettings(
+      // minimum distance in meters to trigger location updates
+      distanceFilter: 5,
+      // interval between location updates in milliseconds
+      interval: 2000,
+    );
+
     location.onLocationChanged.listen((currentLocation) {
       // Use current location data
       CameraPosition currentCameraPosition = CameraPosition(
         target: LatLng(currentLocation.latitude!, currentLocation.longitude!),
-        zoom: 15.0,
+        zoom: 17.0,
       );
+
+      // Update the marker position
+      Marker currentLocationMarker = Marker(
+        markerId: const MarkerId('currentLocation'),
+        position: LatLng(currentLocation.latitude!, currentLocation.longitude!),
+      );
+      markers.add(currentLocationMarker);
+      setState(() {});
+
+      // Update the map's camera position
       googleMapController?.animateCamera(
         CameraUpdate.newCameraPosition(currentCameraPosition),
       );
