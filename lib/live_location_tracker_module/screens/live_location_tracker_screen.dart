@@ -2,14 +2,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:google_maps_app/live_location_tracker_module/functions/show_error_bar.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:location/location.dart';
 
-import '../functions/check_and_request_location_permission.dart';
-import '../functions/check_and_request_location_service.dart';
+import '../services/location_service.dart';
 
 class LiveLocationTrackerScreen extends StatefulWidget {
   const LiveLocationTrackerScreen({super.key});
@@ -21,9 +19,10 @@ class LiveLocationTrackerScreen extends StatefulWidget {
 
 class _LiveLocationTrackerScreenState extends State<LiveLocationTrackerScreen> {
   late CameraPosition initialCameraPosition;
-  late Location location;
+  late LocationService locationService;
   GoogleMapController? googleMapController;
   Set<Marker> markers = {};
+  bool isFirstMapLoad = true;
 
   @override
   void initState() {
@@ -41,9 +40,9 @@ class _LiveLocationTrackerScreenState extends State<LiveLocationTrackerScreen> {
       zoom: 3.0,
     );
 
-    location = Location();
+    locationService = LocationService();
 
-    initLocation(location: location);
+    initLocation();
   }
 
   @override
@@ -54,82 +53,85 @@ class _LiveLocationTrackerScreenState extends State<LiveLocationTrackerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          GoogleMap(
-            initialCameraPosition: initialCameraPosition,
-            markers: markers,
-            //myLocationEnabled: true,
-            onMapCreated: (controller) {
-              googleMapController = controller;
-            },
-          ),
-        ],
-      ),
+    return Stack(
+      children: [
+        GoogleMap(
+          initialCameraPosition: initialCameraPosition,
+          markers: markers,
+          //myLocationEnabled: true,
+          myLocationButtonEnabled: false,
+          //zoomControlsEnabled: false,
+          onMapCreated: (controller) {
+            googleMapController = controller;
+          },
+        ),
+      ],
     );
   }
 
-  void initLocation({
-    required Location location,
-  }) async {
-    try {
-      await checkAndRequestLocationService(location: location);
-      bool hasPermission = await checkAndRequestLocationPermission(
-        location: location,
+  void initLocation() async {
+    await locationService.checkAndRequestLocationService();
+
+    bool hasPermission = await locationService
+        .checkAndRequestLocationPermission();
+
+    if (hasPermission) {
+      // Change location settings for real-time updates
+      locationService.changeRealTimeLocationSettings(
+        interval: 2000,
+        distanceFilter: 5.0,
       );
-      if (hasPermission) {
-        getLocationData(
-          location: location,
-        );
-      } else {
-        // Check if widget is still mounted before using context
-        if (mounted) {
-          showErrorBar(
-            context,
-            "Location permission denied, can't track location",
-          );
-        }
-      }
-    } catch (e) {
-      // Handle any errors during location initialization
-      if (mounted) {
-        showErrorBar(context, "Failed to initialize location: $e");
-      }
+
+      locationService.getRealTimeLocationUpdates(
+        onLocationUpdate: (currentLocationData) {
+          // Update the camera position
+          updateCameraWithCurrentLocation(currentLocationData);
+          // Update the marker position
+          setCurrentLocationMarker(currentLocationData);
+        },
+      );
     }
   }
 
-  void getLocationData({
-    required Location location,
-  }) {
-    // Set location update settings
-    location.changeSettings(
-      // minimum distance in meters to trigger location updates
-      distanceFilter: 5,
-      // interval between location updates in milliseconds
-      interval: 2000,
-    );
-
-    location.onLocationChanged.listen((currentLocation) {
-      // Use current location data
+  void updateCameraWithCurrentLocation(LocationData currentLocationData) {
+    if (isFirstMapLoad) {
+      // Update the initial Zoom level to the user's location
       CameraPosition currentCameraPosition = CameraPosition(
-        target: LatLng(currentLocation.latitude!, currentLocation.longitude!),
+        target: LatLng(
+          currentLocationData.latitude!,
+          currentLocationData.longitude!,
+        ),
         zoom: 17.0,
       );
-
-      // Update the marker position
-      Marker currentLocationMarker = Marker(
-        markerId: const MarkerId('currentLocation'),
-        position: LatLng(currentLocation.latitude!, currentLocation.longitude!),
-      );
-      markers.add(currentLocationMarker);
-      setState(() {});
 
       // Update the map's camera position
       googleMapController?.animateCamera(
         CameraUpdate.newCameraPosition(currentCameraPosition),
       );
-    });
+      isFirstMapLoad = false;
+    } else {
+      // Update the user's location without changing the zoom level
+      googleMapController?.animateCamera(
+        CameraUpdate.newLatLng(
+          LatLng(
+            currentLocationData.latitude!,
+            currentLocationData.longitude!,
+          ),
+        ),
+      );
+    }
+  }
+
+  void setCurrentLocationMarker(LocationData currentLocationData) {
+    Marker currentLocationMarker = Marker(
+      markerId: const MarkerId('currentLocation'),
+      position: LatLng(
+        currentLocationData.latitude!,
+        currentLocationData.longitude!,
+      ),
+    );
+    markers.add(currentLocationMarker);
+    setState(() {});
   }
 }
 

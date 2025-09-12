@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -9,7 +8,6 @@ import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platf
 
 import '../functions/init_markers.dart';
 import '../functions/load_map_style.dart';
-import '../models/place_model.dart';
 
 class CustomGoogleMap extends StatefulWidget {
   const CustomGoogleMap({super.key});

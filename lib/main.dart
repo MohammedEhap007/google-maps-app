@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_app/live_location_tracker_module/screens/live_location_tracker_screen.dart';
 
-import 'basics_module/widgets/custom_google_map.dart';
+import 'live_location_tracker_module/screens/live_location_tracker_screen.dart';
 
 void main() {
   runApp(const GoogleMapsApp());
