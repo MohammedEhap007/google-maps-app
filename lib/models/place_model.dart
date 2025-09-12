@@ -28,5 +28,4 @@ List<PlaceModel> places = [
     name: 'جامعة المنصورة',
     location: const LatLng(31.045094455189503, 31.3537011092201),
   ),
-  // Add more places as needed
 ];

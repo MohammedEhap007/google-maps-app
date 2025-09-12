@@ -1,9 +1,15 @@
-import 'dart:ui' as ui;
+import 'dart:async';
+import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:google_maps_app/models/place_model.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
+import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
+
+import '../functions/init_markers.dart';
+import '../functions/load_map_style.dart';
+import '../models/place_model.dart';
 
 class CustomGoogleMap extends StatefulWidget {
   const CustomGoogleMap({super.key});
@@ -15,11 +21,19 @@ class CustomGoogleMap extends StatefulWidget {
 class _CustomGoogleMapState extends State<CustomGoogleMap> {
   late CameraPosition initialCameraPosition;
   late GoogleMapController googleMapController;
-  String? nightMapStyle;
   Set<Marker> markers = {};
+  String? nightMapStyle;
 
   @override
   void initState() {
+    super.initState();
+    // Enable hybrid composition on Android to improve performance
+    if (Platform.isAndroid) {
+      unawaited(
+        (GoogleMapsFlutterPlatform.instance as GoogleMapsFlutterAndroid)
+            .warmup(),
+      );
+    }
     initialCameraPosition = const CameraPosition(
       target: LatLng(
         31.04057557844767,
@@ -27,27 +41,29 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
       ),
       zoom: 12.0,
     );
-    initMarkers();
-    super.initState();
+    initMapStyle();
+    loadMarkers();
   }
 
   @override
   void dispose() {
-    googleMapController.dispose();
     super.dispose();
+    googleMapController.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        GoogleMap( 
+        GoogleMap(
+          myLocationEnabled: true,
+          myLocationButtonEnabled: false,
+          //zoomControlsEnabled: false,
           markers: markers,
           style: nightMapStyle,
           //mapType: MapType.hybrid,
           onMapCreated: (controller) {
             googleMapController = controller;
-            initMapStyle();
           },
           initialCameraPosition: initialCameraPosition,
           // cameraTargetBounds: CameraTargetBounds(
@@ -77,64 +93,18 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     );
   }
 
-  Future<void> initMapStyle() async {
-    // Load the map style from assets
-    nightMapStyle = await DefaultAssetBundle.of(
-      context,
-    ).loadString('assets/map_styles/night_map_style.json');
-    // Apply the map style to the Google Map
+  void loadMarkers() async {
+    markers = await initMarkers();
+    // Rebuild to show markers
     setState(() {});
   }
 
-  // // Use this method if you don't have a direct access to the image file
-  // // Like you have the image coming form an API or a different source
-  // Future<Uint8List> resizeImageFromRawData(
-  //   String imagePath,
-  //   double width,
-  // ) async {
-  //   // Load the image data from assets
-  //   var imageData = await rootBundle.load(imagePath);
-
-  //   // Instantiate the image codec with the loaded data and target width
-  //   // Note: This step will resize the image to the specified width
-  //   var imageCodec = await ui.instantiateImageCodec(
-  //     imageData.buffer.asUint8List(),
-  //     targetWidth: width.round(),
-  //   );
-
-  //   // Get the first frame of the image codec
-  //   var imageFrameInfo = await imageCodec.getNextFrame();
-
-  //   // Convert the image to a byte array
-  //   // using the specified format (PNG in this case)
-  //   var imageByteData = await imageFrameInfo.image.toByteData(
-  //     format: ui.ImageByteFormat.png,
-  //   );
-
-  //   // Return the byte array as Uint8List
-  //   return imageByteData!.buffer.asUint8List();
-  // }
-
-  void initMarkers() async {
-    // Load custom marker icon from assets
-    // Note: Ensure the icon is in PNG format
-    var customMarkerIcon = await BitmapDescriptor.asset(
-      const ImageConfiguration(),
-      'assets/icons/resized_marker_icon.png',
+  void initMapStyle() async {
+    nightMapStyle = await loadMapStyle(
+      context: context,
+      mapStylePath: 'assets/map_styles/night_map_style.json',
     );
-
-    // Create markers from the places list
-    var myMarkers = places
-        .map(
-          (placeModel) => Marker(
-            icon: customMarkerIcon,
-            markerId: MarkerId(placeModel.id.toString()),
-            position: placeModel.location,
-            infoWindow: InfoWindow(title: placeModel.name),
-          ),
-        )
-        .toSet();
-    markers.addAll(myMarkers);
+    // Rebuild to apply the map style
     setState(() {});
   }
 }
