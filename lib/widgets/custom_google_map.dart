@@ -24,6 +24,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
   String? nightMapStyle;
   Set<Marker> markers = {};
   Set<Polyline> polylines = {};
+  Set<Polygon> polygons = {};
 
   @override
   void initState() {
@@ -45,6 +46,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     initMapStyle();
     loadMarkers();
     initPolylines();
+    initPolygons();
   }
 
   @override
@@ -64,6 +66,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
           style: nightMapStyle,
           markers: markers,
           polylines: polylines,
+          polygons: polygons,
           //mapType: MapType.hybrid,
           onMapCreated: (controller) {
             googleMapController = controller;
@@ -161,6 +164,35 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     polylines.add(polyline1);
     polylines.add(polyline2);
     polylines.add(polyline3);
+  }
+
+  void initPolygons() {
+    Polygon polygon1 = Polygon(
+      polygonId: const PolygonId('1'),
+      fillColor: Colors.black.withValues(alpha: 0.5),
+      strokeColor: Colors.deepOrange,
+      strokeWidth: 3,
+      points: const [
+        LatLng(31.032, 31.378),
+        LatLng(31.042, 31.388),
+        LatLng(31.052, 31.378),
+        LatLng(31.042, 31.368),
+      ],
+      holes: const [
+        [
+          LatLng(31.04278347541768, 31.378247246788305),
+          LatLng(31.040411837993542, 31.37669156562038),
+          LatLng(31.039933826395426, 31.380189166033247),
+          LatLng(31.0415149325204, 31.380725607833813),
+        ],
+        [
+          LatLng(31.03694941874267, 31.378046592349147),
+          LatLng(31.034286831656228, 31.379313658544362),
+          LatLng(31.03556898703269, 31.375601686095994),
+        ],
+      ],
+    );
+    polygons.add(polygon1);
   }
 }
 
