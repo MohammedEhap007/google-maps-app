@@ -25,6 +25,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
   Set<Marker> markers = {};
   Set<Polyline> polylines = {};
   Set<Polygon> polygons = {};
+  Set<Circle> circles = {};
 
   @override
   void initState() {
@@ -47,6 +48,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     loadMarkers();
     initPolylines();
     initPolygons();
+    initCircles();
   }
 
   @override
@@ -62,11 +64,12 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
         GoogleMap(
           myLocationEnabled: true,
           myLocationButtonEnabled: false,
-          //zoomControlsEnabled: false,
+          zoomControlsEnabled: false,
           style: nightMapStyle,
           markers: markers,
           polylines: polylines,
           polygons: polygons,
+          circles: circles,
           //mapType: MapType.hybrid,
           onMapCreated: (controller) {
             googleMapController = controller;
@@ -193,6 +196,18 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
       ],
     );
     polygons.add(polygon1);
+  }
+
+  void initCircles() {
+    Circle circle1 = Circle(
+      circleId: const CircleId('1'),
+      fillColor: Colors.purple.withValues(alpha: 0.3),
+      strokeColor: Colors.purple,
+      strokeWidth: 2,
+      center: const LatLng(31.041965759533927, 31.353550579325933),
+      radius: 1000, // in meters
+    );
+    circles.add(circle1);
   }
 }
 
