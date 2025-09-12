@@ -21,8 +21,9 @@ class CustomGoogleMap extends StatefulWidget {
 class _CustomGoogleMapState extends State<CustomGoogleMap> {
   late CameraPosition initialCameraPosition;
   late GoogleMapController googleMapController;
-  Set<Marker> markers = {};
   String? nightMapStyle;
+  Set<Marker> markers = {};
+  Set<Polyline> polylines = {};
 
   @override
   void initState() {
@@ -43,6 +44,7 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     );
     initMapStyle();
     loadMarkers();
+    initPolylines();
   }
 
   @override
@@ -59,8 +61,9 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
           myLocationEnabled: true,
           myLocationButtonEnabled: false,
           //zoomControlsEnabled: false,
-          markers: markers,
           style: nightMapStyle,
+          markers: markers,
+          polylines: polylines,
           //mapType: MapType.hybrid,
           onMapCreated: (controller) {
             googleMapController = controller;
@@ -93,12 +96,6 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     );
   }
 
-  void loadMarkers() async {
-    markers = await initMarkers();
-    // Rebuild to show markers
-    setState(() {});
-  }
-
   void initMapStyle() async {
     nightMapStyle = await loadMapStyle(
       context: context,
@@ -106,6 +103,64 @@ class _CustomGoogleMapState extends State<CustomGoogleMap> {
     );
     // Rebuild to apply the map style
     setState(() {});
+  }
+
+  void loadMarkers() async {
+    markers = await initMarkers();
+    // Rebuild to show markers
+    setState(() {});
+  }
+
+  void initPolylines() {
+    Polyline polyline1 = const Polyline(
+      polylineId: PolylineId('1'),
+      color: Colors.blue,
+      startCap: Cap.roundCap,
+      endCap: Cap.roundCap,
+      zIndex: 2,
+      width: 5,
+      points: [
+        LatLng(31.095503806971635, 31.29815706102415),
+        LatLng(31.05494184686604, 31.38065659554169),
+        LatLng(31.016276176511532, 31.388371049170285),
+        LatLng(30.881626469198256, 31.461151543735912),
+      ],
+    );
+    Polyline polyline2 = Polyline(
+      polylineId: const PolylineId('2'),
+      color: Colors.red,
+      startCap: Cap.roundCap,
+      endCap: Cap.roundCap,
+      zIndex: 1,
+      width: 5,
+      patterns: [
+        PatternItem.gap(25),
+        PatternItem.dash(25),
+        PatternItem.gap(25),
+        PatternItem.dot,
+      ],
+      points: const [
+        LatLng(31.024316054370384, 31.232073722358727),
+        LatLng(30.943214828505734, 31.377663499206218),
+        LatLng(31.0317817189109, 31.553629094839895),
+        LatLng(31.16712281051145, 31.452005085351804),
+      ],
+    );
+    Polyline polyline3 = const Polyline(
+      polylineId: PolylineId('3'),
+      color: Colors.green,
+      geodesic: true,
+      startCap: Cap.roundCap,
+      endCap: Cap.roundCap,
+      width: 5,
+      points: [
+        LatLng(62.503733588700534, 94.95278794135676),
+        LatLng(-54.07321148408361, -68.39277450715906),
+      ],
+    );
+    polylines.add(polyline1);
+    polylines.add(polyline2);
+    polylines.add(polyline3);
   }
 }
 
