@@ -31,9 +31,11 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter:
     sdk: flutter
+  flutter_dotenv: ^6.0.0
   google_maps_flutter: ^2.12.3
   google_maps_flutter_android: ^2.18.2
   google_maps_flutter_platform_interface: ^2.14.0
+  http: ^1.5.0
   location: ^8.0.1
 
 dev_dependencies:
@@ -55,6 +57,7 @@ flutter:
   assets:
     - assets/map_styles/
     - assets/icons/
+    - .env
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
   # For details regarding adding assets from package dependencies, see
