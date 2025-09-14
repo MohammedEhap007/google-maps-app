@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
+import 'package:location/location.dart';
+
+import '../services/location_service.dart';
 
 class RouteTrackerView extends StatefulWidget {
   const RouteTrackerView({super.key});
@@ -15,6 +18,8 @@ class RouteTrackerView extends StatefulWidget {
 
 class _RouteTrackerViewState extends State<RouteTrackerView> {
   late CameraPosition initialCameraPosition;
+  late LocationService locationService;
+  late GoogleMapController googleMapController;
 
   @override
   void initState() {
@@ -27,7 +32,12 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
       );
     }
 
-    initialCameraPosition = const CameraPosition(target: LatLng(0, 0));
+    initialCameraPosition = const CameraPosition(
+      target: LatLng(0, 0),
+      zoom: 3,
+    );
+
+    locationService = LocationService();
   }
 
   @override
@@ -35,12 +45,36 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
     return Stack(
       children: [
         GoogleMap(
+          onMapCreated: (controller) {
+            googleMapController = controller;
+            updateCurrentLocation();
+          },
           initialCameraPosition: initialCameraPosition,
           zoomControlsEnabled: false,
           myLocationEnabled: true,
           myLocationButtonEnabled: false,
         ),
       ],
+    );
+  }
+
+  void updateCurrentLocation() async {
+    // Get the current location
+    LocationData currentLocationData = await locationService
+        .getCurrentLocation();
+    // Save the current location to a LatLng object
+    LatLng currentPosition = LatLng(
+      currentLocationData.latitude!,
+      currentLocationData.longitude!,
+    );
+    // Create a CameraPosition for the current location
+    CameraPosition currentCameraPosition = CameraPosition(
+      target: currentPosition,
+      zoom: 16.0,
+    );
+    // Move the camera to the current location
+    googleMapController.animateCamera(
+      CameraUpdate.newCameraPosition(currentCameraPosition),
     );
   }
 }
