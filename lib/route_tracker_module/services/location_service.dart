@@ -46,9 +46,7 @@ class LocationService {
     location.onLocationChanged.listen(onLocationUpdate);
   }
 
-  Future<LocationData> getCurrentLocation({
-    Function(LocationData)? onLocationFetch,
-  }) async {
+  Future<LocationData> getCurrentLocation() async {
     await checkAndRequestLocationService();
     await checkAndRequestLocationPermission();
     // Fetch current location

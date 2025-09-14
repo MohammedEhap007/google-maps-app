@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:google_maps_app/route_tracker_module/errors/exception.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
@@ -59,22 +61,36 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
   }
 
   void updateCurrentLocation() async {
-    // Get the current location
-    LocationData currentLocationData = await locationService
-        .getCurrentLocation();
-    // Save the current location to a LatLng object
-    LatLng currentPosition = LatLng(
-      currentLocationData.latitude!,
-      currentLocationData.longitude!,
-    );
-    // Create a CameraPosition for the current location
-    CameraPosition currentCameraPosition = CameraPosition(
-      target: currentPosition,
-      zoom: 16.0,
-    );
-    // Move the camera to the current location
-    googleMapController.animateCamera(
-      CameraUpdate.newCameraPosition(currentCameraPosition),
-    );
+    try {
+      // Get the current location
+      LocationData currentLocationData = await locationService
+          .getCurrentLocation();
+      // Save the current location to a LatLng object
+      LatLng currentPosition = LatLng(
+        currentLocationData.latitude!,
+        currentLocationData.longitude!,
+      );
+      // Create a CameraPosition for the current location
+      CameraPosition currentCameraPosition = CameraPosition(
+        target: currentPosition,
+        zoom: 16.0,
+      );
+      // Move the camera to the current location
+      googleMapController.animateCamera(
+        CameraUpdate.newCameraPosition(currentCameraPosition),
+      );
+    } on LocationServiceException catch (exception) {
+      // Handle location service disabled
+      // TODO: Show location service dialog
+      log('Location Service Error: $exception');
+    } on LocationPermissionException catch (exception) {
+      // Handle location permission denied
+      // TODO: Show location permission dialog
+      log('Location Permission Error: $exception');
+    } catch (error) {
+      // Handle any other unexpected errors
+      // TODO: Show a generic error dialog
+      log('Unexpected Error: $error');
+    }
   }
 }
