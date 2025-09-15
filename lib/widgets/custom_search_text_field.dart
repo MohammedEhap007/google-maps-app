@@ -10,26 +10,25 @@ class CustomSearchTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: TextField(
-          controller: textEditingController,
-          decoration: InputDecoration(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-            ),
-            hintText: 'Search here',
-            hintStyle: const TextStyle(
-              color: Colors.grey,
-            ),
-            filled: true,
-            fillColor: Colors.white,
-            border: buildBorder(),
-            enabledBorder: buildBorder(),
-            focusedBorder: buildBorder(),
-          ),
+    return TextField(
+      onTapOutside: (event) {
+        // Dismiss the keyboard when tapping outside the TextField
+        FocusScope.of(context).unfocus();
+      },
+      controller: textEditingController,
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16.0,
         ),
+        hintText: 'Search here',
+        hintStyle: const TextStyle(
+          color: Colors.grey,
+        ),
+        filled: true,
+        fillColor: Colors.white,
+        border: buildBorder(),
+        enabledBorder: buildBorder(),
+        focusedBorder: buildBorder(),
       ),
     );
   }

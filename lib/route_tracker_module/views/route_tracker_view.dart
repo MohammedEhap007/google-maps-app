@@ -10,7 +10,9 @@ import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:location/location.dart';
 
+import '../../widgets/custom_predicted_places_list_view.dart';
 import '../../widgets/custom_search_text_field.dart';
+import '../models/place_autocomplete_model/place_autocomplete_model.dart';
 import '../services/location_service.dart';
 
 class RouteTrackerView extends StatefulWidget {
@@ -26,6 +28,7 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
   late GoogleMapController googleMapController;
   late TextEditingController textEditingController;
   late GoogleMapsPlacesApiService googleMapsPlacesApiService;
+  List<PlaceAutocompleteModel> predictedPlaces = [];
 
   @override
   void initState() {
@@ -53,6 +56,12 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
   }
 
   @override
+  void dispose() {
+    textEditingController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
@@ -66,7 +75,22 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
           myLocationEnabled: true,
           myLocationButtonEnabled: false,
         ),
-        CustomSearchTextField(textEditingController: textEditingController),
+        SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              children: [
+                CustomSearchTextField(
+                  textEditingController: textEditingController,
+                ),
+                const SizedBox(height: 8.0),
+                CustomPredictedPlacesListView(
+                  predictedPlaces: predictedPlaces,
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -105,17 +129,31 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
     }
   }
 
-  void getPredictions() async {
+  void getPredictions() {
     textEditingController.addListener(() async {
-      if (textEditingController.text.isNotEmpty) {
-        try {
-          final predictions = await googleMapsPlacesApiService.getPredictions(
-            input: textEditingController.text,
-          );
-          log('Predictions: $predictions');
-        } catch (error) {
-          log('Error fetching predictions: $error');
+      final input = textEditingController.text.trim();
+      if (input.isEmpty) {
+        setState(() {
+          predictedPlaces.clear();
+        });
+        return;
+      }
+      try {
+        final predictions = await googleMapsPlacesApiService.getPredictions(
+          input: input,
+        );
+        // Only update if the text field still has the same content
+        if (input == textEditingController.text.trim()) {
+          setState(() {
+            predictedPlaces.clear();
+            predictedPlaces.addAll(predictions);
+          });
         }
+      } catch (error) {
+        log('Error fetching predictions: $error');
+        setState(() {
+          predictedPlaces.clear();
+        });
       }
     });
   }
