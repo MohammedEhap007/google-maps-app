@@ -9,6 +9,7 @@ import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:location/location.dart';
 
+import '../../widgets/custom_search_text_field.dart';
 import '../services/location_service.dart';
 
 class RouteTrackerView extends StatefulWidget {
@@ -56,6 +57,7 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
           myLocationEnabled: true,
           myLocationButtonEnabled: false,
         ),
+        const CustomSearchTextField(),
       ],
     );
   }
