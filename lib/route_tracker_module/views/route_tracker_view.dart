@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_app/route_tracker_module/errors/exception.dart';
+import 'package:google_maps_app/route_tracker_module/services/google_maps_places_api_service.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
@@ -23,6 +24,8 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
   late CameraPosition initialCameraPosition;
   late LocationService locationService;
   late GoogleMapController googleMapController;
+  late TextEditingController textEditingController;
+  late GoogleMapsPlacesApiService googleMapsPlacesApiService;
 
   @override
   void initState() {
@@ -34,13 +37,19 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
             .warmup(),
       );
     }
-
+    // Set the initial camera position to a default location
     initialCameraPosition = const CameraPosition(
       target: LatLng(0, 0),
       zoom: 3,
     );
-
+    // Initialize the location service
     locationService = LocationService();
+    // Initialize the text editing controller
+    textEditingController = TextEditingController();
+    // Initialize the Google Maps Places API service
+    googleMapsPlacesApiService = GoogleMapsPlacesApiService();
+    // Fetch predictions as the user types
+    getPredictions();
   }
 
   @override
@@ -57,7 +66,7 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
           myLocationEnabled: true,
           myLocationButtonEnabled: false,
         ),
-        const CustomSearchTextField(),
+        CustomSearchTextField(textEditingController: textEditingController),
       ],
     );
   }
@@ -94,5 +103,20 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
       // TODO: Show a generic error dialog
       log('Unexpected Error: $error');
     }
+  }
+
+  void getPredictions() async {
+    textEditingController.addListener(() async {
+      if (textEditingController.text.isNotEmpty) {
+        try {
+          final predictions = await googleMapsPlacesApiService.getPredictions(
+            input: textEditingController.text,
+          );
+          log('Predictions: $predictions');
+        } catch (error) {
+          log('Error fetching predictions: $error');
+        }
+      }
+    });
   }
 }
