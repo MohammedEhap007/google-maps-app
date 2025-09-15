@@ -136,7 +136,7 @@ class _LiveLocationTrackerScreenState extends State<LiveLocationTrackerScreen> {
 }
 
 //* Steps to get the user location:
-  // TODO: 1. Inquire about the location service.
-  // TODO: 2. Request location permission.
-  // TODO: 3. Get the user's current location.
-  // TODO: 4. Update the map's camera position to the user's location.
+// TODO: 1. Inquire about the location service.
+// TODO: 2. Request location permission.
+// TODO: 3. Get the user's current location.
+// TODO: 4. Update the map's camera position to the user's location.

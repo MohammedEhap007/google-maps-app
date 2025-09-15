@@ -10,8 +10,8 @@ import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:location/location.dart';
 
-import '../../widgets/custom_predicted_places_list_view.dart';
-import '../../widgets/custom_search_text_field.dart';
+import '../widgets/custom_predicted_places_list_view.dart';
+import '../widgets/custom_search_text_field.dart';
 import '../models/place_autocomplete_model/place_autocomplete_model.dart';
 import '../services/location_service.dart';
 

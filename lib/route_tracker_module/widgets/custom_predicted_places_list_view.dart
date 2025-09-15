@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../route_tracker_module/models/place_autocomplete_model/place_autocomplete_model.dart';
+import '../models/place_autocomplete_model/place_autocomplete_model.dart';
 
 class CustomPredictedPlacesListView extends StatelessWidget {
   const CustomPredictedPlacesListView({
