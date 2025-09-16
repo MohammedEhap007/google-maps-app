@@ -24,7 +24,7 @@ class GoogleMapsRoutesApiService {
     final http.Response response = await http.post(
       url,
       headers: headers,
-      body: body.toJson(),
+      body: jsonEncode(body.toJson()),
     );
     if (response.statusCode == 200) {
       // Parse the JSON response

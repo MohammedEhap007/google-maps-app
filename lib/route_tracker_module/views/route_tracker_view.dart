@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+import 'dart:math' hide log;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:google_maps_app/route_tracker_module/helpers/show_error_bar.dart';
 import 'package:google_maps_app/route_tracker_module/models/get_route_body_model/get_route_body_model.dart';
 import 'package:google_maps_app/route_tracker_module/models/get_route_body_model/location.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -44,6 +46,8 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
   late LatLng destinationLocation;
   List<PlaceAutocompleteModel> predictedPlaces = [];
   String? sessionToken;
+  Set<Polyline> polylines = {};
+  Set<Marker> markers = {};
 
   @override
   void initState() {
@@ -93,6 +97,8 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
           zoomControlsEnabled: false,
           myLocationEnabled: true,
           myLocationButtonEnabled: false,
+          polylines: polylines,
+          markers: markers,
         ),
         SafeArea(
           child: Padding(
@@ -107,7 +113,7 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
                   predictedPlaces: predictedPlaces,
                   googleMapsPlacesApiService: googleMapsPlacesApiService,
                   // Pass the onPlaceSelected callback to clear the text field and predictions
-                  onPlaceSelected: (placeDetailsModel) {
+                  onPlaceSelected: (placeDetailsModel) async {
                     setState(() {
                       textEditingController.clear();
                       predictedPlaces.clear();
@@ -119,7 +125,8 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
                       placeDetailsModel.geometry!.location!.lat!,
                       placeDetailsModel.geometry!.location!.lng!,
                     );
-                    getRoutePoints();
+                    var routePoints = await getRoutePoints();
+                    displayRoute(routePoints);
                   },
                 ),
               ],
@@ -175,7 +182,6 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
       }
       // Generate a new session token if it's null
       sessionToken ??= uuid.v4();
-      log(sessionToken!);
       try {
         final predictions = await googleMapsPlacesApiService.getPredictions(
           input: input,
@@ -189,7 +195,7 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
           });
         }
       } catch (error) {
-        log('Error fetching predictions: $error');
+        showErrorBar(context, 'Error fetching predictions');
         setState(() {
           predictedPlaces.clear();
         });
@@ -217,12 +223,77 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
         ),
       ),
     );
-    // Fetch the route from the Google Maps Routes API
-    RoutesModel routes = await googleMapsRoutesApiService.getRoutes(body: body);
-    // Decode the polyline into a list of LatLng points
-    List<LatLng> points = PolylinePoints.decodePolyline(
-      routes.routes!.first.polyline!.encodedPolyline!,
-    ).map((point) => LatLng(point.latitude, point.longitude)).toList();
-    return points;
+    try {
+      // Fetch the route from the Google Maps Routes API
+      RoutesModel routes = await googleMapsRoutesApiService.getRoutes(
+        body: body,
+      );
+      // Decode the polyline into a list of LatLng points
+      List<LatLng> points = PolylinePoints.decodePolyline(
+        routes.routes!.first.polyline!.encodedPolyline!,
+      ).map((point) => LatLng(point.latitude, point.longitude)).toList();
+      return points;
+    } catch (error) {
+      // ignore: use_build_context_synchronously
+      showErrorBar(context, 'No route found');
+      return [];
+    }
+  }
+
+  void displayRoute(List<LatLng> routePoints) {
+    // Create a Polyline to represent the route
+    final Polyline routePolyline = Polyline(
+      polylineId: const PolylineId('route'),
+      points: routePoints,
+      color: Colors.blueAccent,
+      width: 7,
+      startCap: Cap.roundCap,
+      endCap: Cap.roundCap,
+    );
+    // Clear existing polylines and add the new route polyline
+    setState(() {
+      polylines.clear();
+      polylines.add(routePolyline);
+      // Clear existing markers and add markers for the current and destination locations
+      markers.clear();
+      markers.add(
+        Marker(
+          markerId: const MarkerId('currentLocation'),
+          position: currentLocation,
+          infoWindow: const InfoWindow(title: 'Current Location'),
+        ),
+      );
+      markers.add(
+        Marker(
+          markerId: const MarkerId('destinationLocation'),
+          position: destinationLocation,
+          infoWindow: const InfoWindow(title: 'Destination'),
+        ),
+      );
+    });
+    // Adjust the camera to fit the route
+    LatLngBounds bounds = getLatLngBounds(routePoints);
+    googleMapController.animateCamera(
+      CameraUpdate.newLatLngBounds(bounds, 50),
+    );
+  }
+
+  LatLngBounds getLatLngBounds(List<LatLng> routePoints) {
+    var southWestLatitude = routePoints.first.latitude;
+    var southWestLongitude = routePoints.first.longitude;
+    var northEastLatitude = routePoints.first.latitude;
+    var northEastLongitude = routePoints.first.longitude;
+    for (var point in routePoints) {
+      southWestLatitude = min(southWestLatitude, point.latitude);
+      southWestLongitude = min(southWestLongitude, point.longitude);
+      northEastLatitude = max(northEastLatitude, point.latitude);
+      northEastLongitude = max(northEastLongitude, point.longitude);
+    }
+    return LatLngBounds(
+      // southwest is the smallest point in the route
+      southwest: LatLng(southWestLatitude, southWestLongitude),
+      // northeast is the biggest point in the route
+      northeast: LatLng(northEastLatitude, northEastLongitude),
+    );
   }
 }
