@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_app/route_tracker_module/errors/exception.dart';
+import 'package:google_maps_app/route_tracker_module/models/place_details_model/place_details_model.dart';
 import 'package:google_maps_app/route_tracker_module/services/google_maps_places_api_service.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
@@ -86,6 +87,14 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
                 const SizedBox(height: 8.0),
                 CustomPredictedPlacesListView(
                   predictedPlaces: predictedPlaces,
+                  googleMapsPlacesApiService: googleMapsPlacesApiService,
+                  // Pass the onPlaceSelected callback to clear the text field and predictions
+                  onPlaceSelected: (placeDetailsModel) {
+                    setState(() {
+                      textEditingController.clear();
+                      predictedPlaces.clear();
+                    });
+                  },
                 ),
               ],
             ),

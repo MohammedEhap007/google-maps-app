@@ -1,4 +1,9 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:google_maps_app/route_tracker_module/models/place_details_model/place_details_model.dart';
+import 'package:google_maps_app/route_tracker_module/services/google_maps_places_api_service.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../models/place_autocomplete_model/place_autocomplete_model.dart';
 
@@ -6,9 +11,13 @@ class CustomPredictedPlacesListView extends StatelessWidget {
   const CustomPredictedPlacesListView({
     super.key,
     required this.predictedPlaces,
+    required this.googleMapsPlacesApiService,
+    required this.onPlaceSelected,
   });
 
   final List<PlaceAutocompleteModel> predictedPlaces;
+  final GoogleMapsPlacesApiService googleMapsPlacesApiService;
+  final void Function(PlaceDetailsModel) onPlaceSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +64,14 @@ class CustomPredictedPlacesListView extends StatelessWidget {
                 Icons.arrow_outward_rounded,
                 size: 24.0,
               ),
-              onPressed: () {},
+              onPressed: () async {
+                PlaceDetailsModel placeDetails =
+                    await googleMapsPlacesApiService.getPlaceDetails(
+                      placeId: predictedPlaces[index].placeId!,
+                    );
+                // Call the onPlaceSelected callback with the fetched place details
+                onPlaceSelected(placeDetails);
+              },
             ),
           );
         },

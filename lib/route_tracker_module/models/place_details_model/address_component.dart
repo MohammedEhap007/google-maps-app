@@ -9,7 +9,9 @@ class AddressComponent {
     return AddressComponent(
       longName: json['long_name'] as String?,
       shortName: json['short_name'] as String?,
-      types: json['types'] as List<String>?,
+      types: (json['types'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
   }
 
