@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_app/route_tracker_module/models/get_route_body_model/get_route_body_model.dart';
 import 'package:google_maps_app/route_tracker_module/models/get_route_body_model/location.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -118,7 +119,7 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
                       placeDetailsModel.geometry!.location!.lat!,
                       placeDetailsModel.geometry!.location!.lng!,
                     );
-                    getRouteData();
+                    getRoutePoints();
                   },
                 ),
               ],
@@ -196,7 +197,8 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
     });
   }
 
-  Future<RouteModel> getRouteData() async {
+  Future<List<LatLng>> getRoutePoints() async {
+    // Get the body for the route request
     GetRouteBodyModel body = GetRouteBodyModel(
       origin: Origin(
         location: LocationModel(
@@ -215,7 +217,12 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
         ),
       ),
     );
+    // Fetch the route from the Google Maps Routes API
     RoutesModel routes = await googleMapsRoutesApiService.getRoutes(body: body);
-    return routes.routes!.first;
+    // Decode the polyline into a list of LatLng points
+    List<LatLng> points = PolylinePoints.decodePolyline(
+      routes.routes!.first.polyline!.encodedPolyline!,
+    ).map((point) => LatLng(point.latitude, point.longitude)).toList();
+    return points;
   }
 }
