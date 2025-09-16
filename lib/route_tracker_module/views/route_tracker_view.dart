@@ -12,6 +12,7 @@ import 'package:uuid/uuid.dart';
 import '../errors/exception.dart';
 import '../models/place_autocomplete_model/place_autocomplete_model.dart';
 import '../services/google_maps_places_api_service.dart';
+import '../services/google_maps_routes_api_service.dart';
 import '../services/location_service.dart';
 import '../widgets/custom_predicted_places_list_view.dart';
 import '../widgets/custom_search_text_field.dart';
@@ -29,7 +30,10 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
   late GoogleMapController googleMapController;
   late TextEditingController textEditingController;
   late GoogleMapsPlacesApiService googleMapsPlacesApiService;
+  late GoogleMapsRoutesApiService googleMapsRoutesApiService;
   late Uuid uuid;
+  late LatLng currentLocation;
+  late LatLng destinationLocation;
   List<PlaceAutocompleteModel> predictedPlaces = [];
   String? sessionToken;
 
@@ -56,6 +60,8 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
     textEditingController = TextEditingController();
     // Initialize the Google Maps Places API service
     googleMapsPlacesApiService = GoogleMapsPlacesApiService();
+    // Initialize the Google Maps Routes API service
+    googleMapsRoutesApiService = GoogleMapsRoutesApiService();
     // Fetch predictions as the user types
     getPredictions();
   }
@@ -100,6 +106,11 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
                       // Reset the session token
                       sessionToken = null;
                     });
+                    // Update the destination location with the selected place's coordinates
+                    destinationLocation = LatLng(
+                      placeDetailsModel.geometry!.location!.lat!,
+                      placeDetailsModel.geometry!.location!.lng!,
+                    );
                   },
                 ),
               ],
@@ -116,13 +127,13 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
       LocationData currentLocationData = await locationService
           .getCurrentLocation();
       // Save the current location to a LatLng object
-      LatLng currentPosition = LatLng(
+      currentLocation = LatLng(
         currentLocationData.latitude!,
         currentLocationData.longitude!,
       );
       // Create a CameraPosition for the current location
       CameraPosition currentCameraPosition = CameraPosition(
-        target: currentPosition,
+        target: currentLocation,
         zoom: 16.0,
       );
       // Move the camera to the current location
