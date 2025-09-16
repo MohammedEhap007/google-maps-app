@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:google_maps_app/route_tracker_module/models/get_route_body_model/get_route_body_model.dart';
+import 'package:google_maps_app/route_tracker_module/models/get_route_body_model/location.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
@@ -10,7 +12,12 @@ import 'package:location/location.dart';
 import 'package:uuid/uuid.dart';
 
 import '../errors/exception.dart';
+import '../models/get_route_body_model/destination.dart';
+import '../models/get_route_body_model/lat_lng.dart';
+import '../models/get_route_body_model/origin.dart';
 import '../models/place_autocomplete_model/place_autocomplete_model.dart';
+import '../models/routes_model/route.dart';
+import '../models/routes_model/routes_model.dart';
 import '../services/google_maps_places_api_service.dart';
 import '../services/google_maps_routes_api_service.dart';
 import '../services/location_service.dart';
@@ -111,6 +118,7 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
                       placeDetailsModel.geometry!.location!.lat!,
                       placeDetailsModel.geometry!.location!.lng!,
                     );
+                    getRouteData();
                   },
                 ),
               ],
@@ -186,5 +194,28 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
         });
       }
     });
+  }
+
+  Future<RouteModel> getRouteData() async {
+    GetRouteBodyModel body = GetRouteBodyModel(
+      origin: Origin(
+        location: LocationModel(
+          latLng: LatLngModel(
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude,
+          ),
+        ),
+      ),
+      destination: Destination(
+        location: LocationModel(
+          latLng: LatLngModel(
+            latitude: destinationLocation.latitude,
+            longitude: destinationLocation.longitude,
+          ),
+        ),
+      ),
+    );
+    RoutesModel routes = await googleMapsRoutesApiService.getRoutes(body: body);
+    return routes.routes!.first;
   }
 }

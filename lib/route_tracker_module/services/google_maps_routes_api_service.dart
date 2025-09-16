@@ -10,7 +10,7 @@ class GoogleMapsRoutesApiService {
       'https://routes.googleapis.com/directions/v2:computeRoutes';
   final String apiKey = dotenv.env['GOOGLE_MAPS_API_KEY']!;
 
-  Future<RoutesModel> getRoute({required GetRouteBodyModel body}) async {
+  Future<RoutesModel> getRoutes({required GetRouteBodyModel body}) async {
     // Set up URL
     final Uri url = Uri.parse(baseUrl);
     // Set up headers
