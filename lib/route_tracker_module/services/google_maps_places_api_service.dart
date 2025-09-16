@@ -1,9 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:google_maps_app/route_tracker_module/models/place_details_model/place_details_model.dart';
 import 'package:http/http.dart' as http;
-import 'package:google_maps_app/route_tracker_module/models/place_autocomplete_model/place_autocomplete_model.dart';
+
+import '../models/place_autocomplete_model/place_autocomplete_model.dart';
+import '../models/place_details_model/place_details_model.dart';
 
 class GoogleMapsPlacesApiService {
   final String baseUrl = 'https://maps.googleapis.com/maps/api/place';
@@ -11,9 +12,10 @@ class GoogleMapsPlacesApiService {
 
   Future<List<PlaceAutocompleteModel>> getPredictions({
     required String input,
+    required String sessionToken,
   }) async {
     final String url =
-        '$baseUrl/autocomplete/json?input=$input&key=$googleMapsApiKey';
+        '$baseUrl/autocomplete/json?input=$input&sessiontoken=$sessionToken&key=$googleMapsApiKey';
     // Make the HTTP GET request
     final http.Response response = await http.get(Uri.parse(url));
     // Check if the request was successful

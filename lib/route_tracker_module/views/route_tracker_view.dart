@@ -3,18 +3,18 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:google_maps_app/route_tracker_module/errors/exception.dart';
-import 'package:google_maps_app/route_tracker_module/models/place_details_model/place_details_model.dart';
-import 'package:google_maps_app/route_tracker_module/services/google_maps_places_api_service.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:location/location.dart';
+import 'package:uuid/uuid.dart';
 
+import '../errors/exception.dart';
+import '../models/place_autocomplete_model/place_autocomplete_model.dart';
+import '../services/google_maps_places_api_service.dart';
+import '../services/location_service.dart';
 import '../widgets/custom_predicted_places_list_view.dart';
 import '../widgets/custom_search_text_field.dart';
-import '../models/place_autocomplete_model/place_autocomplete_model.dart';
-import '../services/location_service.dart';
 
 class RouteTrackerView extends StatefulWidget {
   const RouteTrackerView({super.key});
@@ -29,7 +29,9 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
   late GoogleMapController googleMapController;
   late TextEditingController textEditingController;
   late GoogleMapsPlacesApiService googleMapsPlacesApiService;
+  late Uuid uuid;
   List<PlaceAutocompleteModel> predictedPlaces = [];
+  String? sessionToken;
 
   @override
   void initState() {
@@ -48,6 +50,8 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
     );
     // Initialize the location service
     locationService = LocationService();
+    // Initialize the UUID generator
+    uuid = const Uuid();
     // Initialize the text editing controller
     textEditingController = TextEditingController();
     // Initialize the Google Maps Places API service
@@ -93,6 +97,8 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
                     setState(() {
                       textEditingController.clear();
                       predictedPlaces.clear();
+                      // Reset the session token
+                      sessionToken = null;
                     });
                   },
                 ),
@@ -147,9 +153,13 @@ class _RouteTrackerViewState extends State<RouteTrackerView> {
         });
         return;
       }
+      // Generate a new session token if it's null
+      sessionToken ??= uuid.v4();
+      log(sessionToken!);
       try {
         final predictions = await googleMapsPlacesApiService.getPredictions(
           input: input,
+          sessionToken: sessionToken!,
         );
         // Only update if the text field still has the same content
         if (input == textEditingController.text.trim()) {
