@@ -1,4 +1,4 @@
-import 'lat_lng.dart';
+import 'lat_lng_model.dart';
 
 class LocationModel {
   LatLngModel? latLng;

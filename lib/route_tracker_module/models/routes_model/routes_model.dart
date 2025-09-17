@@ -1,4 +1,4 @@
-import 'route.dart';
+import 'route_model.dart';
 
 class RoutesModel {
   List<RouteModel>? routes;

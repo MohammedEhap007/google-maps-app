@@ -1,4 +1,4 @@
-import 'location.dart';
+import 'location_model.dart';
 
 class Destination {
   LocationModel? location;
